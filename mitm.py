@@ -6,7 +6,7 @@ import re
 from socket import gethostbyaddr,herror
 from platform import system
 from subprocess import check_output
-from colorama import init
+from colorama import init,Fore
 
 init()
 
@@ -18,7 +18,7 @@ logo = '''
 ██    ██ ██   ██ ██   ██ ██ ██ ██ ██  ██ ██ 
  ██████  ██   ██ ██████   █ ████  ██   ████ 
                                             
-Sabueso v 1.0                                      
+\033[0;40;31mSabueso v 1.0                                      
 
 '''
 ejecutando = True
@@ -65,13 +65,14 @@ def ejecucion(maq1,maq2):
 if __name__ == '__main__':
    print(logo)
    if system() == 'Linux':
-      if check_output('whoami',text=True) == 'root': 
-         maq1 = str(input('maquina A >> '))
-         maq2 = str(input('maquina B >> '))
+      if check_output('whoami',text=True).strip() == 'root': 
+         maq1 = str(input(Fore.WHITE+'maquina A >> '))
+         maq2 = str(input(Fore.WHITE+'maquina B >> '))
          #esto redirige automaticamente los paquetes de la victima al router para que no se que sin conexion
          os.system("sysctl net.ipv4.ip_forward=1")
          ejecucion(maq1,maq2)
       else:
          print('\n\033[0;40;31m[+] no soy root\n')
    else:
-      print('\n[+] \033[0;40;31msistema operativo incompatible\n')
+      print('\n\033[0;40;31m[+] sistema operativo incompatible\n')
+      input()
