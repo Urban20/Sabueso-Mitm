@@ -1,0 +1,2 @@
+colorama==0.4.6
+scapy==2.6.1
