@@ -48,9 +48,9 @@ def sniffing():
                #retorna la ip del destinatario
                p1 = informacion(func_sn[x])[0]
 
-               print(Fore.WHITE+f'\n{gethostbyaddr(pqt)[0]} - ip numerica > {pqt}- destinatario > {p1}\n')
+               print(Fore.WHITE+f'\r\n[+] {gethostbyaddr(pqt)[0]}\n[+] ip numerica > {pqt}\n[+] destinatario > {p1}\r\n')
 
-            except herror: print(Fore.WHITE+f'\n{pqt} - ip numerica > {pqt}- destinatario > {p1}\n')
+            except herror: print(Fore.WHITE+f'\r\n[+] ip numerica > {pqt}\n[+] destinatario > {p1}\n\r')
 
       except TypeError: pass
 
