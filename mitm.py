@@ -66,16 +66,18 @@ def sniffing():
 
                info = f'[+] host > {gethostbyaddr(pqt)[0]}\n[+] ip numerica > {pqt}\n[+] ipv4 implicado > {p1}'
 
-               print(Fore.WHITE+f'\r\n{info}\r\n')
+               if p1 == maq1 or p1 == maq2:
+                  print(Fore.WHITE+f'\r\n{info}\r\n')
 
             except herror:
                info = f'[+] ip numerica > {pqt}\n[+] ipv4 implicado > {p1}'
-               print(Fore.WHITE+f'\r\n{info}\n\r')
+               if p1 == maq1 or p1 == maq2:
+                  print(Fore.WHITE+f'\r\n{info}\n\r')
             finally:
-               if guardado:
+               if guardado and (p1 == maq1 or p1 == maq2):
                   guardar(data=info)
 
-      except TypeError: pass
+      except (TypeError,ValueError): pass
 
       except Exception as e: print(f'\n\033[0;40;31m[+] error > {e}\n')  
       
@@ -95,11 +97,11 @@ if __name__ == '__main__':
       if check_output('whoami',text=True).strip() == 'root': 
          maq1 = str(input(Fore.WHITE+'[#] maquina A (ipv4) >> ')).strip()
          maq2 = str(input(Fore.WHITE+'[#] maquina B (ipv4) >> ')).strip()
-         preg = str(input('[0] para guardar info en .txt >> '))
+         preg = str(input('[0] para guardar info en .txt >> ')).strip()
 
          if preg == '0':
             guardado = True
-            n_arch = str(input('[#] nombre que tendra el archivo >> '))
+            n_arch = str(input('[#] nombre que tendra el archivo >> ')).strip()
 
          print('\033[0m')
          for x in ['sysctl net.ipv4.conf.all.send_redirects=0',
