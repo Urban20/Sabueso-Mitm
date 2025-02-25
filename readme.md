@@ -1,4 +1,6 @@
 
+[![image.png](https://i.postimg.cc/ZqBDfbnL/image.png)](https://postimg.cc/Jy8q0Wby)
+
 > [!IMPORTANT]
 La herramienta puede debilitar o tirar la conexion de la maquina victima, ademas, el sitema de la victima podria avisarle que se esta llevando a cabo un ataque
 

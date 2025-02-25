@@ -34,7 +34,7 @@ def ataque(ip1,ip2):
    global ejecutando
   
    try:
-      arp_mitm(ip1,ip2)
+      arp_mitm(ip1,ip2)#type:ignore
 
    except Exception as e:
       print(f'\n\033[0;40;31m[-] ocurrio un error durante el ataque >> {e}\033[0m\n')
