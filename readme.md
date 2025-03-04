@@ -12,6 +12,7 @@ El script efectua un ataque mitm y posteriormente olfatea o sniffea la red en bu
 
 Lo que se obtiene son nombres de host o direcciones ip, con esas direcciones se podria recopilar informacion para saber por donde estuvo navegando la victima
 
+Si el host esta protegido por algun servicio como Cloudflare, no se podra saber con certeza a que sitio web pertenece la ip ya que se estaria ocultando la ip verdadera del sitio
 
 > [!WARNING]
 --> No me hago responsable del mal uso que se le pueda dar a este codigo. El codigo fue hecho con fines de experimentacion y uso personal , puede fallar y/o tener errores
