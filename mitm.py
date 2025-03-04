@@ -66,15 +66,15 @@ def sniffing():
 
                info = f'[+] host > {gethostbyaddr(pqt)[0]}\n[+] ip numerica > {pqt}\n[+] ipv4 implicado > {p1}'
 
-               if p1 == maq1 or p1 == maq2:
+               if p1 in ipv4s:
                   print(Fore.WHITE+f'\r\n{info}\r\n')
 
             except herror:
                info = f'[+] ip numerica > {pqt}\n[+] ipv4 implicado > {p1}'
-               if p1 == maq1 or p1 == maq2:
+               if p1 in ipv4s:
                   print(Fore.WHITE+f'\r\n{info}\n\r')
             finally:
-               if guardado and (p1 == maq1 or p1 == maq2):
+               if guardado and p1 in ipv4s:
                   guardar(data=info)
 
       except (TypeError,ValueError): pass
@@ -91,12 +91,15 @@ def ejecucion(maq1,maq2):
    
 
 if __name__ == '__main__':
+   ipv4s = []
    print(logo)
    guardado = False
    if system() == 'Linux':
       if check_output('whoami',text=True).strip() == 'root': 
          maq1 = str(input(Fore.WHITE+'[#] maquina A (ipv4) >> ')).strip()
          maq2 = str(input(Fore.WHITE+'[#] maquina B (ipv4) >> ')).strip()
+         ipv4s.append(maq1)
+         ipv4s.append(maq2)
          preg = str(input('[0] para guardar info en .txt >> ')).strip()
 
          if preg == '0':
