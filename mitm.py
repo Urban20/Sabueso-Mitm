@@ -56,7 +56,7 @@ def informacion(paquete):
 def sniffing_HTTP():
    'protocolos HTTP'
    while ejecutando:
-      sniff(timeout=1,filter='tcp and port 80 ',prn=lambda x:x.sprintf('\r\n[+] protocolo http detectado\n[+] ip inicial : %IP.src% -->  ip destinatario : %IP.dst%\n[+] info del paquete recibido > %Raw.load%\r\n'))
+      sniff(timeout=1,filter=f'tcp and port 80 and ( host {maq1} or host {maq2} )',prn=lambda x:x.sprintf('\r\n[+] protocolo http detectado\n[+] ip inicial : %IP.src% -->  ip destinatario : %IP.dst%\n[+] info del paquete recibido > %Raw.load%\r\n'))
  
  
 def sniffing_HTTPS():
@@ -64,7 +64,7 @@ def sniffing_HTTPS():
    while ejecutando:
       try:
  
-         func_sn = sniff(timeout=1,filter='tcp and port 443 ')
+         func_sn = sniff(timeout=1,filter=f'tcp and port 443')
          for x in range(len(func_sn) - 1):
             try:
                #retorna la ip del sitio web
@@ -126,7 +126,7 @@ if __name__ == '__main__':
          print('\033[0m')
          for x in ['sysctl net.ipv4.conf.all.send_redirects=0',
             'sysctl net.ipv4.ip_forward=1',
-            'iptables -t mangle -A PREROUTING -j TTL --ttl-inc 1']:
+            'iptables -t mangle -A PREROUTING -j TTL --ttl-inc 10']:
  
             if subprocess.run(x,shell=True).returncode != 0:
                print(f'\n[+] no se pudo configurar correctamente el comando {x}\n')
