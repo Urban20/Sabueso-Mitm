@@ -24,11 +24,12 @@ logo = '''
 ejecutando = True
  
 def guardar(data):
-   try:
-      with open(f'{n_arch}.txt','a') as arch:
-         arch.write(f'\r\n{data}\r\n')
-   except Exception as e:
-      print(f'\n\033[0;40;31m[-] hubo un error durante el guardado de paquetes >> {e}\033[0m\n')
+   if guardado:
+      try:
+         with open(f'{n_arch}.txt','a') as arch:
+            arch.write(f'\r\n{data}\r\n')
+      except Exception as e:
+         print(f'\n\033[0;40;31m[-] hubo un error durante el guardado de paquetes >> {e}\033[0m\n')
  
 def ataque(ip1,ip2): 
    global ejecutando
@@ -44,14 +45,27 @@ def ataque(ip1,ip2):
 def informacion(paquete):
    'informacion de los paquetes HTTPS formateados con re'
    try:
-      ip_http = re.search(r'(\d+\.\d+\.\d+\.\d+):https',str(paquete)).group(1).strip()
+      ip_https = re.search(r'(\d+\.\d+\.\d+\.\d+):https',str(paquete)).group(1).strip()
       ip_dts = re.search(r'TCP (\d+\.\d+\.\d+\.\d+):\w+ >',str(paquete)).group(1).strip()
       #ip_dst --> ip destinatario 0
       #ip_http --> ip del sitio web 1
-      return (ip_dts,ip_http)
-   except AttributeError:
-      pass
+      info = f'[+] host > {gethostbyaddr(ip_https)[0]}\n[+] ip numerica > {ip_https}\n[+] ipv4 implicado > {ip_dts}'
  
+
+   except herror:
+      info = f'[+] ip numerica > {ip_https}\n[+] ipv4 implicado > {ip_dts}'
+
+   except AttributeError:
+      info = ''
+      
+
+   finally:
+
+      if ip_dts in ipv4s:
+
+         print(Fore.WHITE+f'\r\n{info}\n\r')
+
+         guardar(info)
  
 def sniffing_HTTP():
    'protocolos HTTP'
@@ -64,33 +78,7 @@ def sniffing_HTTPS():
    while ejecutando:
       try:
  
-         func_sn = sniff(timeout=1,filter=f'tcp and port 443')
-         for x in range(len(func_sn) - 1):
-            try:
-               #retorna la ip del sitio web
-               pqt = informacion(func_sn[x])[1]
-               #retorna la ip del destinatario
-               p1 = informacion(func_sn[x])[0]
- 
-               info = f'[+] host > {gethostbyaddr(pqt)[0]}\n[+] ip numerica > {pqt}\n[+] ipv4 implicado > {p1}'
- 
-               if p1 in ipv4s:
-
-                  print(Fore.WHITE+f'\r\n{info}\r\n')
- 
-            except herror:
-               info = f'[+] ip numerica > {pqt}\n[+] ipv4 implicado > {p1}'
-
-               if p1 in ipv4s:
-
-                  print(Fore.WHITE+f'\r\n{info}\n\r')
-                  
-            finally:
-
-               if guardado and p1 in ipv4s:
-
-                  guardar(data=info)
- 
+         sniff(timeout=1,filter=f'tcp and port 443 and (host {maq1} or host {maq2} )',prn=informacion)       
       except (TypeError,ValueError): pass
  
       except Exception as e: print(f'\n\033[0;40;31m[+] error > {e}\n')  
@@ -114,7 +102,7 @@ if __name__ == '__main__':
 
          maq1 = str(input(Fore.WHITE+'[#] maquina A (ipv4) >> ')).strip()
          maq2 = str(input(Fore.WHITE+'[#] maquina B (ipv4) >> ')).strip()
-         preg = str(input('[0] para guardar info en .txt >> ')).strip()
+         preg = str(input('[0] para guardar info de paquetes HTTPS en .txt >> ')).strip()
 
          ipv4s.append(maq1)
          ipv4s.append(maq2)
@@ -122,7 +110,9 @@ if __name__ == '__main__':
          if preg == '0':
             guardado = True
             n_arch = str(input('[#] nombre que tendra el archivo >> ')).strip()
- 
+         else:
+            n_arch = None
+
          print('\033[0m')
          for x in ['sysctl net.ipv4.conf.all.send_redirects=0',
             'sysctl net.ipv4.ip_forward=1',
