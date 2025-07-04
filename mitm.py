@@ -31,7 +31,6 @@ logo = '''
 ''' + Fore.RESET
 
 # variables y config
-sys.stderr = open('stderr.log','w')
 ejecutando = True
 #incremento de ttl
 inc_ttl= '10'
@@ -135,6 +134,8 @@ if __name__ == '__main__':
       if system() == 'Linux':
 
          if subprocess.check_output('whoami',text=True).strip() == 'root': 
+
+            sys.stderr = open('stderr.log','w')
 
             signal.signal(signal.SIGINT,salir)
 
