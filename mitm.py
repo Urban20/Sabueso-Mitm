@@ -14,7 +14,7 @@ init()
 
 # esta herramienta es un experimento en toda regla
 # el objetivo de esta utilidad fue meramente con fines de curiosidad y
-# sin ideas maliciosas, es por esto que no me hago responzable de su mal uso
+# sin ideas maliciosas, es por esto que no me hago responsable de su mal uso
 # Autor : Urb@n -- "estamos hack" -- https://www.github.com/Urban20/
  
 logo = '''
@@ -121,6 +121,7 @@ def ejecutar_comandos(revertir:bool):
       ip_f = '0'
       ipt = 'D'
    else: 
+      # este comando provoca que todo el trafico sea interpretado como que viene de la maquina atacante al router
       if subprocess.run(['iptables','-t','nat','-A','POSTROUTING','-o',parametros.param.interfaz,'-j','MASQUERADE']).returncode != 0:
          print('hubo un problema al ejecutar comando de iptables')
       else: print('comando iptables ejecutado con exito\n')
