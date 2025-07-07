@@ -9,6 +9,7 @@ from colorama import init,Fore
 import signal
 import parametros
 import sys
+from os import devnull
  
 init()
 
@@ -167,14 +168,20 @@ def ejecucion(maq1,maq2):
  
 if __name__ == '__main__':
    try:
+
+      if not parametros.param.debug:
+         arch = devnull
+      else:
+         arch = 'stderr.log'
+
+      sys.stderr = open(arch,'w')
+
       print(logo)
       ipv4s = []
       guardado = False
       if system() == 'Linux':
 
          if subprocess.check_output('whoami',text=True).strip() == 'root': 
-
-            sys.stderr = open('stderr.log','w')
 
             signal.signal(signal.SIGINT,salir)
 

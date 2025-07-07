@@ -8,5 +8,6 @@ arg.add_argument("-m1","--maq1",type=str,help="dispositivo objetivo nro 1")
 arg.add_argument("-m2","--maq2",type=str,help="dispositivo objetivo nro 2")
 arg.add_argument("-if","--interfaz",type=str,help="interfaz de red a utilizar (necesario para el sniffing)")
 arg.add_argument("-sf","--sniff",action=argparse.BooleanOptionalAction,help="habilita el sniffing entre los dispositivos afectados")
+arg.add_argument("-db","--debug",action=argparse.BooleanOptionalAction,help="muestra errores del stderr en stderr.log")
 param = arg.parse_args()
 
