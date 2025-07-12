@@ -1,97 +1,175 @@
+# Sabueso-Mitm - Herramienta de Intercepción de Tráfico
 
 <p align="center">
-  <img src="https://i.postimg.cc/2SXnczcf/sabueso-logo.png" alt="Logo del proyecto" width="600">
+  <img src="https://i.postimg.cc/2SXnczcf/sabueso-logo.png" alt="Logo del proyecto" width="500">
 </p>
 
+## 🔍 Descripción
 
-# Sabueso
+**Sabueso-Mitm** es un experimento avanzado de _Man-in-the-Middle_ (MITM) que permite interceptar y analizar tráfico HTTP/HTTPS entre dispositivos en una red local. Diseñado con propósitos de experimentación personal, **no me hago responsable de su uso malicioso**.
 
-## Descripción
+⚠️ **ADVERTENCIA CRÍTICA**  
+Realizar este tipo de actividades en redes que no te pertenecen es **ILEGAL** y puede acarrear graves consecuencias legales.
 
-`Sabueso-Mitm` es un experimento de _Man-in-the-Middle_ (MITM) para interceptar tráfico HTTP y HTTPS entre dos dispositivos en la misma red.  
-Su objetivo es puramente experimental y de curiosidad; **NO me hago responsable de malos usos.**
 
-Hacer esto en una red que no te pertenece es **ILEGAL** y podria traerte consecuencias legales
+## 🔄 ¿Qué es un ataque Man-in-the-Middle (MITM)?
+Un ataque Man-in-the-Middle (MITM) es una técnica donde un atacante se posiciona encubiertamente entre dos dispositivos que se comunican (por ejemplo, entre un usuario y un router) para interceptar, modificar o inyectar datos en la comunicación.
 
----
+### 🎯 Objetivos comunes de este tipo de ataques:
 
-## ¿que devuelve como output exactamente?
+- Escuchar tráfico: Capturar datos sensibles como credenciales o mensajes
 
-- **HTTPS** 
+- Manipulación: Alterar el contenido de la comunicación
 
-devuelve la ips con las que se interactuó:
-- ip de la victima junto con la ip del sitio web visitado
-
-esto nos podría servir para deducir por donde esta navegando la victima pero si la ip del sitio esta protegida por algun servicio como cloudflare, no podremos saber con exactitud a que sito pertenece
-
-- **HTTP** 
-
-esto es mas interesante: puesto que la informacion en este protocolo no viaja cifrada, si el usuario ingresa a sitios con este protocolo podriamos capturar formularios como contraseñas ... ⚠️ MUY PELIGROSO
-
-## Características
-
-- Ataque ARP-MITM entre dos máquinas objetivo.
-- Sniffing de paquetes HTTP (puerto 80) y HTTPS (puerto 443).
-- Opción para guardar info de paquetes HTTPS en archivo `.txt`.
-- Limpia automáticamente las reglas de `iptables` al cerrar (`Ctrl+C`).
+- Suplantación: Hacerse pasar por uno de los extremos de la comunicación
 
 ---
 
-## Requisitos
+## 🧠 ¿Cómo funciona Sabueso-mitm?
 
-- **S.O.:** Linux (solo kernels compatibles).  
-- **Permisos:** Debe ejecutarse como **root** (o con `sudo`).  
-- **Python 3.8+**  
-- Librerías Python:
-  ```bash
-  pip install scapy colorama
+```mermaid
+sequenceDiagram
+    participant V as Víctima
+    participant A as Atacante (Sabueso)
+    participant R as Router
 
-## Instalacion
-
-Clona este repo:
-
+    Note over V,R: Comunicación normal
+    V->>R: Solicitud ARP: ¿Quién tiene 192.168.0.1?
+    R->>V: Respuesta ARP: Yo (MAC: BB:BB:BB:BB:BB:BB)
+    
+    Note over A: Fase de ataque
+    A->>V: ARP Spoof: "Soy el router (MAC: AA:AA:AA:AA:AA:AA)"
+    A->>R: ARP Spoof: "Soy la víctima (MAC: AA:AA:AA:AA:AA:AA)"
+    
+    Note over V,R: Comunicación interceptada
+    V->>A: Tráfico para el router
+    A->>R: Reenvío del tráfico (con TTL aumentado)
+    R->>A: Respuesta para la víctima
+    A->>V: Reenvío de la respuesta
 ```
-  git clone https://github.com/Urban20/Sabueso-Mitm.git
-
-  cd Sabueso-Mitm
-```
-instala las dependencias:
-
-`pip install -r requirements.txt`
+Solo se especializa en el tráfico web (protocolo HTTP / HTTPS)
 
 ---
 
-## Paramatros
+## 📡 ¿Qué información se obtiene?
 
+### 🔒 Tráfico HTTPS
+- IP de la víctima
+- IP del sitio web visitado
+- Hostname del sitio (si es resoluble)
+```plaintext
+[+] host --> example.com
+[+] ip numérica --> 93.184.216.34
+[+] ipv4 implicado --> 192.168.1.15
 ```
--h : muestra panel de ayuda
 
--m1, --maq1 : IP del dispositivo objetivo 1.
-
--m2, --maq2 : IP del dispositivo objetivo 2.
-
--if, --interfaz : (opcional) interfaz para habilitar sniffing.
-
--sf, --sniff : activa modo mitm + sniffing; sin este flag, solo MITM.
-
--db, --debug : si se produjo un error, crea un archivo con dicho error
+### 🌐 Tráfico HTTP (¡Cuidado! Información sensible)
+- Contenido completo de paquetes no cifrados
+- Credenciales de formularios
+- Actividad de navegación
+```plaintext
+[+] protocolo http detectado
+[+] IP inicial: 192.168.1.15 --> IP destino: 142.250.185.206
+[+] info del paquete:
+    GET /login HTTP/1.1
+    Host: example.com
+    User-Agent: Mozilla/5.0
+    ...
+    username=test&password=12345
 ```
-Ejemplos:
----
-### SOLO MITM
-
-Podriamos utilizar esto para simplemente interponernos entre dos maquinas o entre una maquina y el router (esto ultimo deja la maquina sin internet porque por defecto la maquina que intercepta descarta los paquetes, por ende nunca llegan a router)
-
-`sudo python3 mitm.py -m1 192.168.0.10 -m2 192.168.0.1`
 
 ---
 
-### MITM + SNIFFING
+## ⚙️ Características Técnicas
 
-Podriamos utilizar esto para interponernos entre dos maquinas o entre una maquina y el router.
-En este ultimo caso la maquina que intercepta (maquina atacante) deberia actuar como proxy entre el router y la victima y mostrar en consola el trafico con los protocolos mencionados 
+- 🎯 Ataque ARP-MITM entre dispositivos objetivo
+- 👂 Sniffing de protocolos HTTP/HTTPS en tiempo real
+- 💾 Opción para guardar datos capturados en archivos
+- 🧹 Limpieza automática de reglas de iptables (Ctrl+C)
+- � Manipulación de TTL para evitar pérdida de paquetes
+- 🐧 Compatibilidad exclusiva con Linux
+- 🧵 Ejecución multihilo para sniffing paralelo
 
-`sudo python3 mitm.py -m1 192.168.0.10 -m2 192.168.0.1 -if eth0 -sf`
+---
 
-## Autor:
-Urb@n 
+## 📋 Requisitos Mínimos
+
+| Componente | Requerimiento |
+|------------|---------------|
+| **Sistema Operativo** | Linux (kernel 4.x+) |
+| **Permisos** | Ejecución como **root** (`sudo`) |
+| **Python** | Versión 3.8+ |
+| **Dependencias** | `scapy`, `colorama` |
+
+```bash
+# Instalar dependencias:
+pip install scapy colorama
+```
+
+---
+
+## 🚀 Instalación Rápida
+
+```bash
+git clone https://github.com/Urban20/Sabueso-Mitm.git
+cd Sabueso-Mitm
+pip install -r requirements.txt
+```
+
+---
+
+## 🕹️ Parámetros de Ejecución
+
+| Parámetro | Descripción | Obligatorio |
+|-----------|-------------|-------------|
+| `-m1`, `--maq1` | IP del primer objetivo | ✅ |
+| `-m2`, `--maq2` | IP del segundo objetivo | ✅ |
+| `-if`, `--interfaz` | Interfaz de red para sniffing | Solo con `-sf` |
+| `-sf`, `--sniff` | Habilita modo sniffing | ❌ |
+| `-db`, `--debug` | Guarda errores en `stderr.log` | ❌ |
+
+---
+
+## 💻 Ejemplos de Uso
+
+### 🔄 Solo MITM (Interrupción de conexión)
+```bash
+sudo python3 mitm.py -m1 192.168.0.10 -m2 192.168.0.1
+```
+*Ideal para pruebas de interrupción de servicio entre dispositivos (D.O.S)*
+
+### 👂 MITM + Sniffing (Análisis de tráfico)
+```bash
+sudo python3 mitm.py -m1 192.168.0.10 -m2 192.168.0.1 -if eth0 -sf
+```
+*Configuración típica para análisis de tráfico víctima→router*
+
+### 🔍 Con guardado de datos HTTPS
+```bash
+sudo python3 mitm.py -m1 192.168.0.10 -m2 192.168.0.1 -if wlan0 -sf
+```
+*Durante la ejecución, ingresar `0` cuando solicite guardar datos*
+
+---
+
+## ⚠️ Limitaciones Conocidas
+
+1. **Protección Cloudflare**: IPs protegidas no revelan el hostname real
+2. **HTTPS Moderno**: No descifra contenido cifrado (solo muestra metadatos)
+3. **Estabilidad**: Puede causar interrupciones de red en objetivos
+4. **SOPORTE**: Solo compatible con redes IPv4
+
+---
+
+## ⭐ Apoyá el Proyecto
+
+Si te gusta mi proyecto, dale una estrellita
+
+### Con esto me ayudas a:
+
+- 📈 Aumentar la visibilidad del proyecto
+
+- 🚀 Motivarme a seguir desarrollando mejoras
+
+- 🔍 Permitir que más personas lo descubran
+
