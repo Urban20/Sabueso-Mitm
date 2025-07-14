@@ -124,7 +124,7 @@ pip install -r requirements.txt
 |-----------|-------------|-------------|
 | `-m1`, `--maq1` | IP del primer objetivo | ✅ |
 | `-m2`, `--maq2` | IP del segundo objetivo | ✅ |
-| `-if`, `--interfaz` | Interfaz de red para sniffing | Solo con `-sf` |
+| `-if`, `--interfaz` | Especificar la interfaz de red para configurar comando de iptables | ✅ |
 | `-sf`, `--sniff` | Habilita modo sniffing | ❌ |
 | `-db`, `--debug` | Guarda errores en `stderr.log` | ❌ |
 
@@ -134,7 +134,7 @@ pip install -r requirements.txt
 
 ### 🔄 Solo MITM (Interrupción de conexión)
 ```bash
-sudo python3 mitm.py -m1 192.168.0.10 -m2 192.168.0.1
+sudo python3 mitm.py -m1 192.168.0.10 -m2 192.168.0.1 -if [interfaz]
 ```
 *Ideal para pruebas de interrupción de servicio entre dispositivos (D.O.S)*
 
