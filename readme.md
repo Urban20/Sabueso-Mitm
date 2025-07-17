@@ -11,6 +11,13 @@
 ⚠️ **ADVERTENCIA CRÍTICA**  
 Realizar este tipo de actividades en redes que no te pertenecen es **ILEGAL** y puede acarrear graves consecuencias legales.
 
+## ¿Tenés alguna pregunta o idea que te gustaria compartir?
+
+#### Podés exponerla en :
+
+<a href="https://github.com/Urban20/Sabueso-Mitm/discussions">
+  <img src="https://img.shields.io/badge/Discusiones-%23EA4C89.svg?style=social&logo=github" alt="Discussions" width=120>
+</a>
 
 ## 🔄 ¿Qué es un ataque Man-in-the-Middle (MITM)?
 Un ataque Man-in-the-Middle (MITM) es una técnica donde un atacante se posiciona encubiertamente entre dos dispositivos que se comunican (por ejemplo, entre un usuario y un router) para interceptar, modificar o inyectar datos en la comunicación.
